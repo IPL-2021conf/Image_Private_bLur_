@@ -186,8 +186,9 @@ class _login extends State<login> {
                                     MaterialPageRoute(
                                         builder: (context) => home()));
                               } else {
+                                print(value.error);
                                 final snackBar = SnackBar(
-                                  content: Text(value.error),
+                                  content: Text("로그인 실패"),
                                 );
                                 scaffoldKey.currentState!
                                     .showSnackBar(snackBar);
