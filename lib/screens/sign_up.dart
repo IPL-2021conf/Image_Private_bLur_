@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../api_service.dart';
+import 'package:image_private_blur/api_service_signUp.dart';
+import '../ProgressHUD.dart';
 import '../user_model.dart';
 
 class sign_up extends StatefulWidget {
@@ -8,14 +9,30 @@ class sign_up extends StatefulWidget {
 }
 
 class _sign_up extends State<sign_up> {
+  final scaffoldKey = GlobalKey<ScaffoldState>();
   GlobalKey<FormState> globalFormKey = new GlobalKey<FormState>();
   bool hidePassWord = true;
-  String userName = '', email = '', password = '';
   bool isApiCallProcess = false;
-  late SignUpRequesetModel requesetModel;
+  late SignUpRequestModel requesetModel;
+
+  @override
+  void initState() {
+    super.initState();
+    requesetModel = new SignUpRequestModel();
+  }
+
   @override
   Widget build(BuildContext context) {
+    return ProgressHUD(
+      child: _uiSignUp(context),
+      inAsyncCall: isApiCallProcess,
+      key: null,
+    );
+  }
+
+  Widget _uiSignUp(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       body: SingleChildScrollView(
         child: Column(children: [
           SizedBox(
@@ -70,7 +87,7 @@ class _sign_up extends State<sign_up> {
                     TextFormField(
                       cursorColor: Colors.grey,
                       keyboardType: TextInputType.text,
-                      onSaved: (input) => requesetModel.user = input!,
+                      onSaved: (input) => requesetModel.username = input!,
                       validator: (input) =>
                           input!.length < 2 ? "2자 이상 적어주세요" : null,
                       decoration: new InputDecoration(
@@ -133,19 +150,9 @@ class _sign_up extends State<sign_up> {
                         ),
                         suffixIcon: IconButton(
                           onPressed: () {
-                            if (validateAndSave()) {
-                              setState(() {
-                                isApiCallProcess = true;
-                              });
-
-                              APIService apiService = new APIService();
-                              apiService.signUp(requesetModel).then((value) {
-                                setState(() {
-                                  isApiCallProcess = false;
-                                });
-                              });
-                              print(requesetModel.toJson());
-                            }
+                            setState(() {
+                              hidePassWord = !hidePassWord;
+                            });
                           },
                           color: Color(0xff819395),
                           icon: Icon(hidePassWord
@@ -167,7 +174,21 @@ class _sign_up extends State<sign_up> {
                           ),
                         ),
                         onPressed: () {
-                          if (validateAndSave()) {}
+                          if (validateAndSave()) {
+                            setState(() {
+                              isApiCallProcess = true;
+                            });
+
+                            APIServiceSignUp apiService =
+                                new APIServiceSignUp();
+                            apiService.signUp(requesetModel).then((value) {
+                              setState(() {
+                                isApiCallProcess = false;
+                              });
+                              //print(requesetModel.toJson());
+                              print(value.password);
+                            });
+                          }
                         }),
                   ],
                 ),

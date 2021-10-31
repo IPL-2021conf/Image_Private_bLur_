@@ -1,24 +1,22 @@
 class LoginResponseModel {
-  final String token;
-  final String error;
+  final String access;
 
-  LoginResponseModel({this.token = '', this.error = ''});
+  LoginResponseModel({this.access = ''});
 
   factory LoginResponseModel.fromJson(Map<String, dynamic> json) {
     return LoginResponseModel(
-      token: json["access"] != null ? json["access"] : "",
-      error: json["error"] != null ? json["error"] : "",
+      access: json["access"] != null ? json["access"] : "",
     );
   }
 }
 
-class LoginRequesetModel {
-  String email = "";
-  String password = "";
+class LoginRequestModel {
+  String email = '';
+  String password = '';
 
-  LoginRequesetModel({
-    this.email = "",
-    this.password = "",
+  LoginRequestModel({
+    this.email = '',
+    this.password = '',
   });
 
   Map<String, dynamic> toJson() {
@@ -26,29 +24,41 @@ class LoginRequesetModel {
       'email': email.trim(),
       'password': password.trim(),
     };
-
     return map;
   }
 }
 
-class SignUpRequesetModel {
-  String user = "";
+class SignUpRequestModel {
   String email = "";
   String password = "";
+  String username = "";
 
-  SignUpRequesetModel({
-    this.user = "",
+  SignUpRequestModel({
     this.email = "",
     this.password = "",
+    this.username = "",
   });
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> map = {
-      'user': user.trim(),
       'email': email.trim(),
       'password': password.trim(),
+      'username': username.trim(),
     };
 
     return map;
+  }
+
+  factory SignUpRequestModel.fromJson(Map<String, dynamic> json) {
+    SignUpRequestModel s = SignUpRequestModel(
+      email: json["email"] != null ? json["email"] : "",
+      password: json["password"] != null ? json["password"] : "",
+      username: json["username"] != null ? json["username"] : "",
+    );
+
+    print(s.email);
+    print(s.password);
+    print(s.username);
+    return s;
   }
 }

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-
 import '../ProgressHUD.dart';
-import '../api_service.dart';
+import '../api_service_signIn.dart';
 import '../user_model.dart';
 import 'home.dart';
+
+String mytoken = '';
 
 class login extends StatefulWidget {
   @override
@@ -14,13 +15,14 @@ class _login extends State<login> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   GlobalKey<FormState> globalFormKey = new GlobalKey<FormState>();
   bool hidePassWord = true;
-  late LoginRequesetModel requesetModel;
+  late LoginRequestModel requesetModel;
   bool isApiCallProcess = false;
 
+  //
   @override
   void initState() {
     super.initState();
-    requesetModel = new LoginRequesetModel();
+    requesetModel = new LoginRequestModel();
   }
 
   @override
@@ -28,7 +30,6 @@ class _login extends State<login> {
     return ProgressHUD(
       child: _uiLogin(context),
       inAsyncCall: isApiCallProcess,
-      opacity: 0.3,
       key: null,
     );
   }
@@ -168,25 +169,20 @@ class _login extends State<login> {
                               isApiCallProcess = true;
                             });
 
-                            APIService apiService = new APIService();
+                            APIServiceSignIn apiService =
+                                new APIServiceSignIn();
                             apiService.login(requesetModel).then((value) {
                               setState(() {
                                 isApiCallProcess = false;
                               });
 
-                              if (value.token.isNotEmpty) {
-                                print(value.token);
-                                final snackBar = SnackBar(
-                                  content: Text("로그인성공!!!!"),
-                                );
-                                scaffoldKey.currentState!
-                                    .showSnackBar(snackBar);
+                              if (value.access.isNotEmpty) {
+                                mytoken = value.access;
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => home()));
                               } else {
-                                print(value.error);
                                 final snackBar = SnackBar(
                                   content: Text("로그인 실패"),
                                 );
@@ -194,7 +190,6 @@ class _login extends State<login> {
                                     .showSnackBar(snackBar);
                               }
                             });
-                            print(requesetModel.toJson());
                           }
                         },
                       ),
