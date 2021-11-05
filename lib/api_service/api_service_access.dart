@@ -1,6 +1,5 @@
 import 'package:http/http.dart' as http;
 import 'package:image_private_blur/screens/login.dart';
-import 'package:image_private_blur/user_model.dart';
 
 class APIServiceAccess {
   Future<String> Token() async {

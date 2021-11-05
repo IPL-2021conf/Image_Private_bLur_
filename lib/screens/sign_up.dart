@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:image_private_blur/api_service_signUp.dart';
+import 'package:image_private_blur/api_service/api_service_signUp.dart';
 import '../ProgressHUD.dart';
 import '../user_model.dart';
 
