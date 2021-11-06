@@ -43,37 +43,36 @@ class home extends StatefulWidget {
 
 class _home extends State<home> {
   get jsonmap => null;
-  List<Map<String,dynamic>> a = [];
+  List<Map<String, dynamic>> a = [];
 
-  Future<List<Map<String,dynamic>>?> fetchPost() async {
-  var headers = {
-    'Authorization':
-        'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2Mzc3ODQ3LCJpYXQiOjE2MzU2OTM3NjUsImp0aSI6IjUzMGE3Y2NlZTVjZDRiOWM5Y2UyMTU0NGE2MGY3YzYxIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.yKAQMHB9nDbVClTJPAzfGZa3Emjf3PMy98mbLjhK_Vw',
-    'Content-Type': 'application/json'
-  };
-  var request = http.MultipartRequest(
-      'GET', Uri.parse('https://ipl-main.herokuapp.com/data/images/'));
+  Future<List<Map<String, dynamic>>?> fetchPost() async {
+    var headers = {
+      'Authorization':
+          'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2Mzc3ODQ3LCJpYXQiOjE2MzU2OTM3NjUsImp0aSI6IjUzMGE3Y2NlZTVjZDRiOWM5Y2UyMTU0NGE2MGY3YzYxIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.yKAQMHB9nDbVClTJPAzfGZa3Emjf3PMy98mbLjhK_Vw',
+      'Content-Type': 'application/json'
+    };
+    var request = http.MultipartRequest(
+        'GET', Uri.parse('https://ipl-main.herokuapp.com/data/images/'));
 
-  request.headers.addAll(headers);
-  http.StreamedResponse response = await request.send();
+    request.headers.addAll(headers);
+    http.StreamedResponse response = await request.send();
 
-  if (response.statusCode == 200) {
-    print("성공");
-    var jsonstr = await response.stream.bytesToString();
-    print(jsonstr);
+    if (response.statusCode == 200) {
+      print("성공");
+      var jsonstr = await response.stream.bytesToString();
+      print(jsonstr);
 
-    var jsonmap = jsonDecode(jsonstr);
-    
-    for(var data in jsonmap){
-      a.add(data);
+      var jsonmap = jsonDecode(jsonstr);
+
+      for (var data in jsonmap) {
+        a.add(data);
+      }
+      return a;
+    } else {
+      print("실패");
+      print(response.reasonPhrase);
     }
-    return a;
-
-  } else {
-    print("실패");
-    print(response.reasonPhrase);
   }
-}
 
   @override
   void initState() {
@@ -81,48 +80,55 @@ class _home extends State<home> {
     fetchPost();
   }
 
-  Widget makePost(AsyncSnapshot snapshot, int index){
-    return Column(
-      children:[ new Padding(
-                  padding: new EdgeInsets.symmetric(vertical: .0,horizontal: 8.0),
-                  child: new Card(
-                    shape: new RoundedRectangleBorder(
-                      borderRadius: new BorderRadius.circular(16.0),
-                    ),
-                    child:new Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        new Padding(
-                        padding: new EdgeInsets.fromLTRB(10.0, 16.0, 0, 0), 
-                        child:
-                            new Text(snapshot.data[index]['username'],  textAlign: TextAlign.left,style: TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        new Padding(
-                        padding: new EdgeInsets.fromLTRB(10.0, 0, 0, 0), 
-                        child:
-                            new Text(snapshot.data[index]['date'],  textAlign: TextAlign.left,style: TextStyle(fontSize: 20.0, color: Colors.grey[600]),
-                          ),
-                        ),
-                        new ClipRRect(
-                        child: new Image.network(snapshot.data[index]['link']),
-                        borderRadius: BorderRadius.only(
-                          topLeft: new Radius.circular(16.0),
-                          topRight: new Radius.circular(16.0),
-                          bottomLeft: new Radius.circular(16.0),
-                          bottomRight: new Radius.circular(16.0),
-                        ),
-                      ),
-                      ],
-                    ),
-                  
-                ),),
-                SizedBox(height: 20,),
-                new Container(
-                  height: 1.0,
-                  width: 380.0,
-                  color: Colors.grey,
-                )]);
+  Widget makePost(AsyncSnapshot snapshot, int index) {
+    return Column(children: [
+      new Padding(
+        padding: new EdgeInsets.symmetric(vertical: .0, horizontal: 8.0),
+        child: new Card(
+          shape: new RoundedRectangleBorder(
+            borderRadius: new BorderRadius.circular(16.0),
+          ),
+          child: new Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              new Padding(
+                padding: new EdgeInsets.fromLTRB(10.0, 16.0, 0, 0),
+                child: new Text(
+                  snapshot.data[index]['username'],
+                  textAlign: TextAlign.left,
+                  style: TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold),
+                ),
+              ),
+              new Padding(
+                padding: new EdgeInsets.fromLTRB(10.0, 0, 0, 0),
+                child: new Text(
+                  snapshot.data[index]['date'],
+                  textAlign: TextAlign.left,
+                  style: TextStyle(fontSize: 20.0, color: Colors.grey[600]),
+                ),
+              ),
+              new ClipRRect(
+                child: new Image.network(snapshot.data[index]['link']),
+                borderRadius: BorderRadius.only(
+                  topLeft: new Radius.circular(16.0),
+                  topRight: new Radius.circular(16.0),
+                  bottomLeft: new Radius.circular(16.0),
+                  bottomRight: new Radius.circular(16.0),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      SizedBox(
+        height: 20,
+      ),
+      new Container(
+        height: 1.0,
+        width: 380.0,
+        color: Colors.grey,
+      )
+    ]);
   }
 
   File? image;
@@ -177,33 +183,33 @@ class _home extends State<home> {
             ),
           ]),
 
-      body: FutureBuilder<List<Map<String,dynamic>>?>(
-          future: fetchPost(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return ListView.builder(
+      body: FutureBuilder<List<Map<String, dynamic>>?>(
+        future: fetchPost(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return ListView.builder(
                 scrollDirection: Axis.vertical,
                 shrinkWrap: true,
-                itemCount:a.length,
-                itemBuilder: (context, index){
-                return makePost(snapshot,index);
-              });
-            } else if (snapshot.hasError) {
-              return Text('${snapshot.error}');
-            }
-            
+                itemCount: a.length,
+                itemBuilder: (context, index) {
+                  return makePost(snapshot, index);
+                });
+          } else if (snapshot.hasError) {
+            return Text('${snapshot.error}');
+          }
 
-            // 기본적으로 로딩 Spinner를 보여줍니다.
-            return CircularProgressIndicator();
-          },
-        ),
-        //업로드 버튼
+          // 기본적으로 로딩 Spinner를 보여줍니다.
+          return CircularProgressIndicator();
+        },
+      ),
+      //업로드 버튼
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xfffcaa06),
         onPressed: () {
           getImage();
         },
         child: const Icon(Icons.download_rounded),
-      ),);
+      ),
+    );
   }
 }
