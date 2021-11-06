@@ -42,48 +42,87 @@ class home extends StatefulWidget {
 }
 
 class _home extends State<home> {
-  Future<Post?> fetchPost() async {
-    var headers = {
-      'Authorization':
-          'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2Mzc3ODQ3LCJpYXQiOjE2MzU2OTM3NjUsImp0aSI6IjUzMGE3Y2NlZTVjZDRiOWM5Y2UyMTU0NGE2MGY3YzYxIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.yKAQMHB9nDbVClTJPAzfGZa3Emjf3PMy98mbLjhK_Vw',
-      'Content-Type': 'application/json'
-    };
-    var request = http.MultipartRequest(
-        'GET', Uri.parse('https://ipl-main.herokuapp.com/data/images/'));
+  get jsonmap => null;
+  List<Map<String,dynamic>> a = [];
 
-    request.headers.addAll(headers);
-    http.StreamedResponse response = await request.send();
+  Future<List<Map<String,dynamic>>?> fetchPost() async {
+  var headers = {
+    'Authorization':
+        'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2Mzc3ODQ3LCJpYXQiOjE2MzU2OTM3NjUsImp0aSI6IjUzMGE3Y2NlZTVjZDRiOWM5Y2UyMTU0NGE2MGY3YzYxIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.yKAQMHB9nDbVClTJPAzfGZa3Emjf3PMy98mbLjhK_Vw',
+    'Content-Type': 'application/json'
+  };
+  var request = http.MultipartRequest(
+      'GET', Uri.parse('https://ipl-main.herokuapp.com/data/images/'));
 
-    if (response.statusCode == 200) {
-      print("성공");
-      var jsonstr = await response.stream.bytesToString();
-      print(jsonstr);
-      var str1 = jsonstr.split("},");
-      print(str1.elementAt(0));
+  request.headers.addAll(headers);
+  http.StreamedResponse response = await request.send();
 
-      List<dynamic> list = jsonDecode(jsonstr);
-      print(list[0]['link']);
-      print(list[1]['username']);
+  if (response.statusCode == 200) {
+    print("성공");
+    var jsonstr = await response.stream.bytesToString();
+    print(jsonstr);
 
-      List userlist = [];
-      // for(int i = 0; i<str1.length; i++){
-      var jsonmap = jsonDecode(jsonstr)[0];
-      Post post = Post.fromJson(Map<String, dynamic>.from(jsonmap));
-      print(jsonmap);
-
-      return post;
-
-      //return
-    } else {
-      print("실패");
-      print(response.reasonPhrase);
+    var jsonmap = jsonDecode(jsonstr);
+    
+    for(var data in jsonmap){
+      a.add(data);
     }
+    return a;
+
+  } else {
+    print("실패");
+    print(response.reasonPhrase);
   }
+}
 
   @override
   void initState() {
     super.initState();
     fetchPost();
+  }
+
+  Widget makePost(AsyncSnapshot snapshot, int index){
+    return Column(
+      children:[ new Padding(
+                  padding: new EdgeInsets.symmetric(vertical: .0,horizontal: 8.0),
+                  child: new Card(
+                    shape: new RoundedRectangleBorder(
+                      borderRadius: new BorderRadius.circular(16.0),
+                    ),
+                    child:new Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        new Padding(
+                        padding: new EdgeInsets.fromLTRB(10.0, 16.0, 0, 0), 
+                        child:
+                            new Text(snapshot.data[index]['username'],  textAlign: TextAlign.left,style: TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        new Padding(
+                        padding: new EdgeInsets.fromLTRB(10.0, 0, 0, 0), 
+                        child:
+                            new Text(snapshot.data[index]['date'],  textAlign: TextAlign.left,style: TextStyle(fontSize: 20.0, color: Colors.grey[600]),
+                          ),
+                        ),
+                        new ClipRRect(
+                        child: new Image.network(snapshot.data[index]['link']),
+                        borderRadius: BorderRadius.only(
+                          topLeft: new Radius.circular(16.0),
+                          topRight: new Radius.circular(16.0),
+                          bottomLeft: new Radius.circular(16.0),
+                          bottomRight: new Radius.circular(16.0),
+                        ),
+                      ),
+                      ],
+                    ),
+                  
+                ),),
+                SizedBox(height: 20,),
+                new Container(
+                  height: 1.0,
+                  width: 380.0,
+                  color: Colors.grey,
+                )]);
   }
 
   File? image;
@@ -115,11 +154,11 @@ class _home extends State<home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
           automaticallyImplyLeading: false,
           backgroundColor: Colors.white,
           centerTitle: true,
-          elevation: 1.0,
           toolbarHeight: 70,
           actions: <Widget>[
             Image.asset('images/logo1.png'),
@@ -128,8 +167,8 @@ class _home extends State<home> {
             ),
             IconButton(
                 icon: Icon(
-                  Icons.camera_alt_outlined,
-                  color: Colors.black,
+                  Icons.camera_alt,
+                  color: Colors.blueGrey,
                   size: 40,
                 ),
                 onPressed: () {}),
@@ -138,70 +177,33 @@ class _home extends State<home> {
             ),
           ]),
 
-      body: SingleChildScrollView(
-        child: FutureBuilder<Post?>(
+      body: FutureBuilder<List<Map<String,dynamic>>?>(
           future: fetchPost(),
           builder: (context, snapshot) {
-            print(snapshot.hasData);
             if (snapshot.hasData) {
-              return new Padding(
-                  padding:
-                      new EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-                  child: new Card(
-                      shape: new RoundedRectangleBorder(
-                        borderRadius: new BorderRadius.circular(16.0),
-                      ),
-                      child: new Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          new Padding(
-                            padding: new EdgeInsets.fromLTRB(16.0, 16.0, 0, 0),
-                            child: new Text(
-                              snapshot.data!.username,
-                              textAlign: TextAlign.left,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 25.0),
-                            ),
-                          ),
-                          new Padding(
-                            padding: new EdgeInsets.fromLTRB(16.0, 0, 0, 0),
-                            child: new Text(
-                              snapshot.data!.date,
-                              textAlign: TextAlign.left,
-                              style:
-                                  TextStyle(fontSize: 20.0, color: Colors.grey),
-                            ),
-                          ),
-                          new ClipRRect(
-                            child: new Image.network(snapshot.data!.link),
-                            borderRadius: BorderRadius.only(
-                              topLeft: new Radius.circular(16.0),
-                              topRight: new Radius.circular(
-                                16.0,
-                              ),
-                              bottomLeft: new Radius.circular(16.0),
-                              bottomRight: new Radius.circular(16.0),
-                            ),
-                          ),
-                        ],
-                      )));
+              return ListView.builder(
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                itemCount:a.length,
+                itemBuilder: (context, index){
+                return makePost(snapshot,index);
+              });
             } else if (snapshot.hasError) {
-              return Text("${snapshot.error}");
+              return Text('${snapshot.error}');
             }
+            
 
             // 기본적으로 로딩 Spinner를 보여줍니다.
             return CircularProgressIndicator();
           },
         ),
-      ),
-      //업로드 버튼
+        //업로드 버튼
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xfffcaa06),
         onPressed: () {
           getImage();
         },
         child: const Icon(Icons.download_rounded),
-      ),
-    );
+      ),);
   }
 }
