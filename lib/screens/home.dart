@@ -1,8 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart';
 
 //Map을 객체로 변환
 class Post {
@@ -79,6 +84,32 @@ class _home extends State<home> {
   void initState() {
     super.initState();
     fetchPost();
+  }
+
+  File? image;
+  Future getImage() async {
+    try {
+      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (image == null) {
+        return;
+      } else {
+        final imagePermanent = await saveImagePermanently(image.path);
+
+        setState(() => this.image = imagePermanent);
+      }
+    } on PlatformException catch (e) {
+      print('Failed to pick image: $e');
+    }
+  }
+
+  Future<File> saveImagePermanently(String imagePath) async {
+    final directory = await getApplicationDocumentsDirectory();
+    print("디렉토리" + directory.toString());
+    final name = basename(imagePath);
+    print("이름" + name.toString());
+    final image = File('${directory.path}/$name');
+    print("위치" + image.path);
+    return File(imagePath).copy(image.path);
   }
 
   @override
@@ -166,7 +197,9 @@ class _home extends State<home> {
       //업로드 버튼
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xfffcaa06),
-        onPressed: () {},
+        onPressed: () {
+          getImage();
+        },
         child: const Icon(Icons.download_rounded),
       ),
     );
