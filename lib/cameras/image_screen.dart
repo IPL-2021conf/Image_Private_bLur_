@@ -1,17 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
-import 'package:path/path.dart';
+import 'package:image_private_blur/screens/login.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
 import 'package:android_path_provider/android_path_provider.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:image_downloader/image_downloader.dart';
 
 class Photo {
@@ -59,8 +55,8 @@ class _ViewImage extends State<ViewImage> {
 
   void getImageFromServer(String path) async {
     var request = makePost(
-        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2Mjk3NzU1LCJpYXQiOjE2MzYwMzg1NTUsImp0aSI6IjQ3YTc1MTI2ODRlMjQwY2M5YzUwMGJmMzVjNDdkNGZmIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.xlLZrvN5Fz7qVtvcWJ1SnvhzZB1Adm6iWVrW5y5Pyf0',
-        'https://ipl-server-ml.herokuapp.com/processing/image/');
+        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2NTU2Njg5LCJpYXQiOjE2MzYyOTc0ODksImp0aSI6IjBhMzk4OWI3ODZjOTQ3MDZiMDFiOGY4ZTljMjE4YmZjIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.6G5Hh-pe1Spinhj27T6XsT-tsZDvZ47iD4HXUYVqIQQ',
+        'http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/processing/image/');
 
     request.files.add(await http.MultipartFile.fromPath('image', path));
     // http.StreamedResponse response = await request.send();
@@ -88,8 +84,7 @@ class _ViewImage extends State<ViewImage> {
       if (isPressed[i] == true) number.add(i);
     }
     print(number);
-    var request = makePost(
-        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2Mjk3NzU1LCJpYXQiOjE2MzYwMzg1NTUsImp0aSI6IjQ3YTc1MTI2ODRlMjQwY2M5YzUwMGJmMzVjNDdkNGZmIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.xlLZrvN5Fz7qVtvcWJ1SnvhzZB1Adm6iWVrW5y5Pyf0',
+    var request = makePost('${mytoken}',
         'https://ipl-server-ml.herokuapp.com/processing/image/mosaic/');
     request.fields.addAll({
       'img_url': '$origin',
@@ -101,6 +96,7 @@ class _ViewImage extends State<ViewImage> {
 
     print(mosaic);
 
+    //이미지 저장
     try {
       var imageId = await ImageDownloader.downloadImage('${origin}');
       if (imageId == null) return;
@@ -156,13 +152,11 @@ class _ViewImage extends State<ViewImage> {
                   width: screenSize.width,
                   height: screenSize.height,
                 ),
+                //촬영한 이미지
                 Positioned(
                     child: Container(
                   child: Image.file(File('$activePath')),
-                ))
-
-                //촬영한 이미지
-                ,
+                )),
                 //하단 이미지 선택바
                 Positioned(
                   bottom: 0,
@@ -214,9 +208,6 @@ class _ViewImage extends State<ViewImage> {
                         heroTag: 'modify',
                         onPressed: () {
                           print('hello');
-                          // setState(() {
-                          //   counts = 7;
-                          // });
                           getImageFromServer(activePath);
                           setState(() {});
                         },
@@ -243,7 +234,7 @@ class _ViewImage extends State<ViewImage> {
                         },
                         elevation: 0,
                         child: Icon(
-                          Icons.download,
+                          Icons.refresh,
                           color: Colors.white,
                         ),
                         backgroundColor: Colors.transparent,
@@ -293,9 +284,8 @@ class _ViewImage extends State<ViewImage> {
   }
 
   void uploading(String path) async {
-    var request = makePost(
-        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2Mjk3NzU1LCJpYXQiOjE2MzYwMzg1NTUsImp0aSI6IjQ3YTc1MTI2ODRlMjQwY2M5YzUwMGJmMzVjNDdkNGZmIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.xlLZrvN5Fz7qVtvcWJ1SnvhzZB1Adm6iWVrW5y5Pyf0',
-        'https://ipl-main.herokuapp.com/data/images/');
+    var request =
+        makePost('${mytoken}', 'https://ipl-main.herokuapp.com/data/images/');
     request.fields.addAll({
       'useremail': 'admin@admin.com',
       'username': 'admin',

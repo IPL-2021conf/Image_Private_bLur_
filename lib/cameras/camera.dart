@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_private_blur/cameras/video_screen.dart';
 import 'image_screen.dart';
 import 'package:fab_circular_menu/fab_circular_menu.dart';
 
@@ -20,13 +21,11 @@ class TakePictureScreen extends StatefulWidget {
 class TakePictureScreenState extends State<TakePictureScreen> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
-  double left1 = 78;
-  double left2 = 78;
-  double right1 = 156;
   bool onRec = false;
   var recording = Icons.circle_outlined;
   final itemKey = GlobalKey();
   int now = 0;
+  var buttonColor = Colors.white;
 
   @override
   void initState() {
@@ -102,9 +101,6 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                 onPressed: () async {
                   if (now == 0) {
                     try {
-                      // 카메라 초기화
-                      await _initializeControllerFuture;
-
                       // 사진을 촬영하여 image에 저장
                       final image = await _controller.takePicture();
 
@@ -120,6 +116,27 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                     } catch (e) {
                       print(e);
                     }
+                  } else if (now == 1) {
+                    if (!onRec) {
+                      await _controller.startVideoRecording();
+                      setState(() {
+                        recording = Icons.stop_circle_outlined;
+                        onRec = true;
+                      });
+                    } else {
+                      XFile videopath = await _controller.stopVideoRecording();
+                      setState(() {
+                        recording = Icons.circle_outlined;
+                        onRec = false;
+                      });
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (builder) => ViewVideo(
+                                    path: videopath.path,
+                                  )));
+                    }
+                    setState(() {});
                   }
                 },
                 elevation: 2.0,
@@ -127,7 +144,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                 child: Icon(
                   recording,
                   size: 80,
-                  color: Colors.white,
+                  color: buttonColor,
                 ),
                 shape: CircleBorder(),
               ),
@@ -144,8 +161,14 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         children: [
           IconButton(
             onPressed: () {
+              if (onRec == true) {
+                return;
+              }
               print("카메라");
               now = 0;
+              buttonColor = Colors.white;
+              recording = Icons.circle_outlined;
+              setState(() {});
             },
             icon: Icon(
               Icons.camera_alt,
@@ -154,8 +177,14 @@ class TakePictureScreenState extends State<TakePictureScreen> {
           ),
           IconButton(
             onPressed: () {
+              if (onRec == true) {
+                return;
+              }
               print("비디오");
               now = 1;
+              buttonColor = Colors.red;
+              recording = Icons.circle_outlined;
+              setState(() {});
             },
             icon: Icon(
               Icons.video_camera_back,

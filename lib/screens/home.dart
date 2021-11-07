@@ -182,10 +182,6 @@ class _home extends State<home> {
                   size: 40,
                 ),
                 onPressed: () async {
-                  await FlutterDownloader.initialize(
-                      debug:
-                          true // optional: set false to disable printing logs to console
-                      );
                   WidgetsFlutterBinding.ensureInitialized();
 
                   // Obtain a list of the available cameras on the device.
