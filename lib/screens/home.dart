@@ -75,6 +75,7 @@ class _home extends State<home> {
       for (var data in jsonmap) {
         a.add(data);
       }
+      a = a.reversed.toList();
       return a;
     } else {
       print("실패");
@@ -184,10 +185,6 @@ class _home extends State<home> {
           centerTitle: true,
           toolbarHeight: 70,
           actions: <Widget>[
-            Image.asset('images/logo1.png'),
-            SizedBox(
-              width: 90,
-            ),
             IconButton(
                 icon: Icon(
                   Icons.camera_alt,
@@ -195,6 +192,10 @@ class _home extends State<home> {
                   size: 40,
                 ),
                 onPressed: () async {
+                  await FlutterDownloader.initialize(
+                      debug:
+                          true // optional: set false to disable printing logs to console
+                      );
                   WidgetsFlutterBinding.ensureInitialized();
 
                   // Obtain a list of the available cameras on the device.
@@ -209,12 +210,29 @@ class _home extends State<home> {
                           builder: (context) =>
                               TakePictureScreen(camera: firstCamera)));
                 }),
+                SizedBox(width: 110),
+            Image.asset('images/logo1.png'),
+            SizedBox(
+              width: 100,
+            ),
+            IconButton(
+                icon: Icon(
+                  Icons.refresh,
+                  color: Colors.blueGrey,
+                  size: 40,
+                ),
+                onPressed: ()  {
+                }),
             SizedBox(
               width: 10,
             ),
           ]),
 
-      body: FutureBuilder<List<Map<String, dynamic>>?>(
+        
+
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        child: FutureBuilder<List<Map<String, dynamic>>?>(
         future: fetchPost(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
@@ -232,7 +250,7 @@ class _home extends State<home> {
           // 기본적으로 로딩 Spinner를 보여줍니다.
           return CircularProgressIndicator();
         },
-      ),
+      )),
       //업로드 버튼
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xfffcaa06),
@@ -249,6 +267,13 @@ class _home extends State<home> {
         child: const Icon(Icons.download_rounded),
       ),
     );
+  }
+
+  Future<void> _refresh() async {
+     await Future.delayed(Duration(seconds: 2));
+     fetchPost();
+     setState(() {
+     });
   }
 
   void showAlertDialog(BuildContext context, dynamic url) async {
