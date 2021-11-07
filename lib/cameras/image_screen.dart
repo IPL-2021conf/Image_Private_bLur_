@@ -158,7 +158,7 @@ class _ViewImage extends State<ViewImage> {
                 ),
                 Positioned(
                     child: Container(
-                  child: Image.file(File('${widget.path}')),
+                  child: Image.file(File('$activePath')),
                 ))
 
                 //촬영한 이미지
@@ -231,14 +231,15 @@ class _ViewImage extends State<ViewImage> {
                       FloatingActionButton(
                         heroTag: 'download',
                         onPressed: () async {
-                          _localPath = (await _findLocalPath())!;
+                          setState(() {});
+                          // _localPath = (await _findLocalPath())!;
 
-                          final taskId = await FlutterDownloader.enqueue(
-                              url: '${origin}',
-                              savedDir: _localPath,
-                              showNotification: true,
-                              openFileFromNotification: true,
-                              saveInPublicStorage: true);
+                          // final taskId = await FlutterDownloader.enqueue(
+                          //     url: '${origin}',
+                          //     savedDir: _localPath,
+                          //     showNotification: true,
+                          //     openFileFromNotification: true,
+                          //     saveInPublicStorage: true);
                         },
                         elevation: 0,
                         child: Icon(
@@ -300,7 +301,7 @@ class _ViewImage extends State<ViewImage> {
       'username': 'admin',
       'desc': 'test upload2'
     });
-    request.files.add(await http.MultipartFile.fromPath('image', path));
+    request.files.add(await http.MultipartFile.fromPath('image', activePath));
     print('============================');
     print(path);
 
