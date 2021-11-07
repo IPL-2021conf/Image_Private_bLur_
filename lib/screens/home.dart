@@ -1,12 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_downloader/image_downloader.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_private_blur/cameras/camera.dart';
 import 'package:image_private_blur/cameras/image_screen.dart';
@@ -84,7 +88,7 @@ class _home extends State<home> {
     fetchPost();
   }
 
-  Widget makePost(AsyncSnapshot snapshot, int index) {
+  Widget makePost(AsyncSnapshot snapshot, int index, BuildContext context) {
     return Column(children: [
       new Padding(
         padding: new EdgeInsets.symmetric(vertical: .0, horizontal: 8.0),
@@ -111,14 +115,23 @@ class _home extends State<home> {
                   style: TextStyle(fontSize: 20.0, color: Colors.grey[600]),
                 ),
               ),
-              new ClipRRect(
-                child: new Image.network(snapshot.data[index]['link']),
-                borderRadius: BorderRadius.only(
-                  topLeft: new Radius.circular(16.0),
-                  topRight: new Radius.circular(16.0),
-                  bottomLeft: new Radius.circular(16.0),
-                  bottomRight: new Radius.circular(16.0),
+              GestureDetector(
+                child: new ClipRRect(
+                  child: new Image.network(
+                    snapshot.data[index]['link'],
+                  ),
+                  borderRadius: BorderRadius.only(
+                    topLeft: new Radius.circular(16.0),
+                    topRight: new Radius.circular(16.0),
+                    bottomLeft: new Radius.circular(16.0),
+                    bottomRight: new Radius.circular(16.0),
+                  ),
                 ),
+                onTap: () {
+                  print(snapshot.data[index]['link']);
+
+                  showAlertDialog(context, snapshot.data[index]['link']);
+                },
               ),
             ],
           ),
@@ -214,7 +227,7 @@ class _home extends State<home> {
                 shrinkWrap: true,
                 itemCount: a.length,
                 itemBuilder: (context, index) {
-                  return makePost(snapshot, index);
+                  return makePost(snapshot, index, context);
                 });
           } else if (snapshot.hasError) {
             return Text('${snapshot.error}');
@@ -239,6 +252,42 @@ class _home extends State<home> {
         },
         child: const Icon(Icons.download_rounded),
       ),
+    );
+  }
+
+  void showAlertDialog(BuildContext context, dynamic url) async {
+    var result = await showDialog(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('SAVE'),
+          content: Text("저장하시겠습니까?"),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('저장'),
+              onPressed: () async {
+                try {
+                  // Saved with this method.
+                  var imageId = await ImageDownloader.downloadImage(url);
+                  if (imageId == null) {
+                    return;
+                  }
+                } on PlatformException catch (error) {
+                  print(error);
+                }
+                Navigator.pop(context);
+              },
+            ),
+            FlatButton(
+              child: Text('뒤로가기'),
+              onPressed: () {
+                Navigator.pop(context, "Cancel");
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
