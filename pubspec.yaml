@@ -50,7 +50,8 @@ dependencies:
   fab_circular_menu: ^1.0.2
   network_to_file_image: ^3.0.3
   flutter_downloader: ^1.7.1
-  permission_handler: ^8.2.6
+  android_path_provider: ^0.3.0
+  device_info: ^2.0.3
   image_downloader: ^0.30.0
 
   

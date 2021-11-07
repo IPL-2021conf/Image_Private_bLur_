@@ -10,9 +10,8 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:network_to_file_image/network_to_file_image.dart';
+import 'package:android_path_provider/android_path_provider.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:image_downloader/image_downloader.dart';
 
 class Photo {
@@ -43,6 +42,8 @@ class _ViewImage extends State<ViewImage> {
   var list;
   var activePath;
 
+  late String _localPath;
+
   @override
   void initState() {
     activePath = widget.path;
@@ -54,36 +55,6 @@ class _ViewImage extends State<ViewImage> {
   void dispose() {
     IsolateNameServer.removePortNameMapping('downloader_send_port');
     super.dispose();
-  }
-
-  static void downloadCallback(
-      String id, DownloadTaskStatus status, int progress) {
-    final SendPort? send =
-        IsolateNameServer.lookupPortByName('downloader_send_port');
-    send!.send([id, status, progress]);
-  }
-
-  void uploading(String path) async {
-    var request = makePost(
-        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2Mjk3NzU1LCJpYXQiOjE2MzYwMzg1NTUsImp0aSI6IjQ3YTc1MTI2ODRlMjQwY2M5YzUwMGJmMzVjNDdkNGZmIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.xlLZrvN5Fz7qVtvcWJ1SnvhzZB1Adm6iWVrW5y5Pyf0',
-        'https://ipl-main.herokuapp.com/data/images/');
-    request.fields.addAll({
-      'useremail': 'admin@admin.com',
-      'username': 'admin',
-      'desc': 'test upload2'
-    });
-    request.files.add(await http.MultipartFile.fromPath('image', path));
-    print('============================');
-    print(path);
-
-    http.StreamedResponse response = await request.send();
-    print(response.statusCode);
-
-    if (response.statusCode == 200) {
-      print(await response.stream.bytesToString());
-    } else {
-      print(response.reasonPhrase);
-    }
   }
 
   void getImageFromServer(String path) async {
@@ -107,6 +78,8 @@ class _ViewImage extends State<ViewImage> {
       isPressed.add(false);
       basicColor.add(Colors.transparent);
     }
+
+    await _prepareSaveDir();
   }
 
   void sendPerson() async {
@@ -136,20 +109,9 @@ class _ViewImage extends State<ViewImage> {
       print(e);
     }
 
-    // Directory d = await getApplicationDocumentsDirectory();
-    // var res = await get(Uri.parse('$origin'));
-    // final imageName = d.path + '/images';
-    // var fileName = d.path + '/images/pic.jpg';
+    Directory d = await getApplicationDocumentsDirectory();
 
-    // await Directory(imageName).create(recursive: true);
-    // File file2 = new File(fileName);
-    // var v = await res.bodyBytes;
-    // file2.writeAsBytesSync(v);
-    // print(file2);
-
-    // setState(() {
-    //   activePath = file2;
-    //});
+    await _prepareSaveDir();
   }
 
   Widget makeButton(int index) {
@@ -269,20 +231,14 @@ class _ViewImage extends State<ViewImage> {
                       FloatingActionButton(
                         heroTag: 'download',
                         onPressed: () async {
-                          // setState(() {});
-                          // print('dd');
+                          _localPath = (await _findLocalPath())!;
 
-                          // final docPath = await getExternalStorageDirectory();
-                          // print(docPath);
-                          // final filename = basename(editImage!.path);
-                          // print(filename);
-                          // try {
-                          //   final localImage = await editImage!
-                          //       .copy('${docPath!.path}/$filename');
-                          //   print(localImage);
-                          // } catch (e) {
-                          //   print(e);
-                          // }
+                          final taskId = await FlutterDownloader.enqueue(
+                              url: '${origin}',
+                              savedDir: _localPath,
+                              showNotification: true,
+                              openFileFromNotification: true,
+                              saveInPublicStorage: true);
                         },
                         elevation: 0,
                         child: Icon(
@@ -333,6 +289,54 @@ class _ViewImage extends State<ViewImage> {
         ],
       ),
     );
+  }
+
+  void uploading(String path) async {
+    var request = makePost(
+        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2Mjk3NzU1LCJpYXQiOjE2MzYwMzg1NTUsImp0aSI6IjQ3YTc1MTI2ODRlMjQwY2M5YzUwMGJmMzVjNDdkNGZmIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.xlLZrvN5Fz7qVtvcWJ1SnvhzZB1Adm6iWVrW5y5Pyf0',
+        'https://ipl-main.herokuapp.com/data/images/');
+    request.fields.addAll({
+      'useremail': 'admin@admin.com',
+      'username': 'admin',
+      'desc': 'test upload2'
+    });
+    request.files.add(await http.MultipartFile.fromPath('image', path));
+    print('============================');
+    print(path);
+
+    http.StreamedResponse response = await request.send();
+    print(response.statusCode);
+
+    if (response.statusCode == 200) {
+      print(await response.stream.bytesToString());
+    } else {
+      print(response.reasonPhrase);
+    }
+  }
+
+  Future<void> _prepareSaveDir() async {
+    _localPath = (await _findLocalPath())!;
+    final savedDir = Directory(_localPath);
+    bool hasExisted = await savedDir.exists();
+    if (!hasExisted) {
+      savedDir.create();
+    }
+  }
+
+  Future<String?> _findLocalPath() async {
+    var externalStorageDirPath;
+    if (Platform.isAndroid) {
+      try {
+        externalStorageDirPath = await AndroidPathProvider.downloadsPath;
+      } catch (e) {
+        final directory = await getExternalStorageDirectory();
+        externalStorageDirPath = directory?.path;
+      }
+    } else if (Platform.isIOS) {
+      externalStorageDirPath =
+          (await getApplicationDocumentsDirectory()).absolute.path;
+    }
+    return externalStorageDirPath;
   }
 
   http.MultipartRequest makePost(var token, String address) {
