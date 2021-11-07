@@ -1,13 +1,19 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:network_to_file_image/network_to_file_image.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:image_downloader/image_downloader.dart';
 
 class Photo {
   var urlImage;
@@ -35,6 +41,27 @@ class _ViewImage extends State<ViewImage> {
   List<String> images = [];
   int counts = 0;
   var list;
+  var activePath;
+
+  @override
+  void initState() {
+    activePath = widget.path;
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    IsolateNameServer.removePortNameMapping('downloader_send_port');
+    super.dispose();
+  }
+
+  static void downloadCallback(
+      String id, DownloadTaskStatus status, int progress) {
+    final SendPort? send =
+        IsolateNameServer.lookupPortByName('downloader_send_port');
+    send!.send([id, status, progress]);
+  }
 
   void uploading(String path) async {
     var request = makePost(
@@ -64,8 +91,7 @@ class _ViewImage extends State<ViewImage> {
         'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2Mjk3NzU1LCJpYXQiOjE2MzYwMzg1NTUsImp0aSI6IjQ3YTc1MTI2ODRlMjQwY2M5YzUwMGJmMzVjNDdkNGZmIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.xlLZrvN5Fz7qVtvcWJ1SnvhzZB1Adm6iWVrW5y5Pyf0',
         'https://ipl-server-ml.herokuapp.com/processing/image/');
 
-    var imag = await ImagePicker().pickImage(source: ImageSource.gallery);
-    request.files.add(await http.MultipartFile.fromPath('image', imag!.path));
+    request.files.add(await http.MultipartFile.fromPath('image', path));
     // http.StreamedResponse response = await request.send();
     http.StreamedResponse response = await request.send();
     var a = await response.stream.bytesToString();
@@ -98,9 +124,32 @@ class _ViewImage extends State<ViewImage> {
     });
     http.StreamedResponse response = await request.send();
 
-    print(await response.stream.bytesToString());
+    var mosaic = await response.stream.bytesToString();
 
-    Directory d = await getApplicationDocumentsDirectory();
+    print(mosaic);
+
+    try {
+      var imageId = await ImageDownloader.downloadImage('${origin}');
+      if (imageId == null) return;
+      activePath = await ImageDownloader.findPath(imageId);
+    } catch (e) {
+      print(e);
+    }
+
+    // Directory d = await getApplicationDocumentsDirectory();
+    // var res = await get(Uri.parse('$origin'));
+    // final imageName = d.path + '/images';
+    // var fileName = d.path + '/images/pic.jpg';
+
+    // await Directory(imageName).create(recursive: true);
+    // File file2 = new File(fileName);
+    // var v = await res.bodyBytes;
+    // file2.writeAsBytesSync(v);
+    // print(file2);
+
+    // setState(() {
+    //   activePath = file2;
+    //});
   }
 
   Widget makeButton(int index) {
@@ -137,18 +186,21 @@ class _ViewImage extends State<ViewImage> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Container(
             child: Stack(
               children: [
-                //촬영한 이미지
                 Container(
-                  child: Image.file(
-                    editImage!,
-                    fit: BoxFit.cover,
-                  ),
+                  width: screenSize.width,
+                  height: screenSize.height,
                 ),
+                Positioned(
+                    child: Container(
+                  child: Image.file(File('${widget.path}')),
+                ))
+
+                //촬영한 이미지
+                ,
                 //하단 이미지 선택바
                 Positioned(
                   bottom: 0,
@@ -203,7 +255,7 @@ class _ViewImage extends State<ViewImage> {
                           // setState(() {
                           //   counts = 7;
                           // });
-                          getImageFromServer(editImage!.path);
+                          getImageFromServer(activePath);
                           setState(() {});
                         },
                         elevation: 0,
@@ -217,20 +269,20 @@ class _ViewImage extends State<ViewImage> {
                       FloatingActionButton(
                         heroTag: 'download',
                         onPressed: () async {
-                          setState(() {});
-                          print('dd');
+                          // setState(() {});
+                          // print('dd');
 
-                          final docPath = await getExternalStorageDirectory();
-                          print(docPath);
-                          final filename = basename(editImage!.path);
-                          print(filename);
-                          try {
-                            final localImage = await editImage!
-                                .copy('${docPath!.path}/$filename');
-                            print(localImage);
-                          } catch (e) {
-                            print(e);
-                          }
+                          // final docPath = await getExternalStorageDirectory();
+                          // print(docPath);
+                          // final filename = basename(editImage!.path);
+                          // print(filename);
+                          // try {
+                          //   final localImage = await editImage!
+                          //       .copy('${docPath!.path}/$filename');
+                          //   print(localImage);
+                          // } catch (e) {
+                          //   print(e);
+                          // }
                         },
                         elevation: 0,
                         child: Icon(
@@ -243,7 +295,7 @@ class _ViewImage extends State<ViewImage> {
                       FloatingActionButton(
                         heroTag: 'upload',
                         onPressed: () {
-                          uploading(editImage!.path);
+                          uploading(activePath);
                         },
                         elevation: 0,
                         child: Icon(

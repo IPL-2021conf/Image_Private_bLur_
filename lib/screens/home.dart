@@ -2,10 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:image_private_blur/cameras/camera.dart';
+import 'package:image_private_blur/cameras/image_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 
@@ -177,7 +181,25 @@ class _home extends State<home> {
                   color: Colors.blueGrey,
                   size: 40,
                 ),
-                onPressed: () {}),
+                onPressed: () async {
+                  await FlutterDownloader.initialize(
+                      debug:
+                          true // optional: set false to disable printing logs to console
+                      );
+                  WidgetsFlutterBinding.ensureInitialized();
+
+                  // Obtain a list of the available cameras on the device.
+                  final cameras = await availableCameras();
+
+                  // Get a specific camera from the list of available cameras.
+                  final firstCamera = cameras.first;
+
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              TakePictureScreen(camera: firstCamera)));
+                }),
             SizedBox(
               width: 10,
             ),
@@ -205,8 +227,15 @@ class _home extends State<home> {
       //업로드 버튼
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xfffcaa06),
-        onPressed: () {
-          getImage();
+        onPressed: () async {
+          await getImage();
+          print(image!.path);
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ViewImage(
+                        path: image!.path,
+                      )));
         },
         child: const Icon(Icons.download_rounded),
       ),
