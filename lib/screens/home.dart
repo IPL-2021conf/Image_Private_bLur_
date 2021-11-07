@@ -210,7 +210,7 @@ class _home extends State<home> {
                           builder: (context) =>
                               TakePictureScreen(camera: firstCamera)));
                 }),
-                SizedBox(width: 110),
+            SizedBox(width: 110),
             Image.asset('images/logo1.png'),
             SizedBox(
               width: 100,
@@ -221,36 +221,33 @@ class _home extends State<home> {
                   color: Colors.blueGrey,
                   size: 40,
                 ),
-                onPressed: ()  {
-                }),
+                onPressed: () {}),
             SizedBox(
               width: 10,
             ),
           ]),
 
-        
-
       body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: FutureBuilder<List<Map<String, dynamic>>?>(
-        future: fetchPost(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return ListView.builder(
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                itemCount: a.length,
-                itemBuilder: (context, index) {
-                  return makePost(snapshot, index, context);
-                });
-          } else if (snapshot.hasError) {
-            return Text('${snapshot.error}');
-          }
+          onRefresh: _refresh,
+          child: FutureBuilder<List<Map<String, dynamic>>?>(
+            future: fetchPost(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return ListView.builder(
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    itemCount: a.length,
+                    itemBuilder: (context, index) {
+                      return makePost(snapshot, index, context);
+                    });
+              } else if (snapshot.hasError) {
+                return Text('${snapshot.error}');
+              }
 
-          // 기본적으로 로딩 Spinner를 보여줍니다.
-          return CircularProgressIndicator();
-        },
-      )),
+              // 기본적으로 로딩 Spinner를 보여줍니다.
+              return CircularProgressIndicator();
+            },
+          )),
       //업로드 버튼
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xfffcaa06),
@@ -270,10 +267,9 @@ class _home extends State<home> {
   }
 
   Future<void> _refresh() async {
-     await Future.delayed(Duration(seconds: 2));
-     fetchPost();
-     setState(() {
-     });
+    await Future.delayed(Duration(seconds: 2));
+    fetchPost();
+    setState(() {});
   }
 
   void showAlertDialog(BuildContext context, dynamic url) async {
