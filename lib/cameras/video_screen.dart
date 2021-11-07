@@ -154,7 +154,7 @@ class _ViewVideoState extends State<ViewVideo> {
                         heroTag: 'modify',
                         onPressed: () {
                           print('hello');
-                          getImageFromServer(activePath);
+                          getVideoFromServer(activePath);
                           setState(() {});
                         },
                         elevation: 0,
@@ -249,14 +249,18 @@ class _ViewVideoState extends State<ViewVideo> {
     }
   }
 
-  void getImageFromServer(String path) async {
+  void getVideoFromServer(String path) async {
     var request = makePost(
-        'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2NTU2Njg5LCJpYXQiOjE2MzYyOTc0ODksImp0aSI6IjBhMzk4OWI3ODZjOTQ3MDZiMDFiOGY4ZTljMjE4YmZjIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.6G5Hh-pe1Spinhj27T6XsT-tsZDvZ47iD4HXUYVqIQQ',
+        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2NTU2Njg5LCJpYXQiOjE2MzYyOTc0ODksImp0aSI6IjBhMzk4OWI3ODZjOTQ3MDZiMDFiOGY4ZTljMjE4YmZjIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.6G5Hh-pe1Spinhj27T6XsT-tsZDvZ47iD4HXUYVqIQQ',
         'http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/processing/video/');
 
     request.files.add(await http.MultipartFile.fromPath('video', path));
+    print(path);
     // http.StreamedResponse response = await request.send();
     http.StreamedResponse response = await request.send();
+    print('=============');
+    print(response.statusCode);
+    print('=============');
     var a = await response.stream.bytesToString();
     print(a);
 
@@ -281,7 +285,7 @@ class _ViewVideoState extends State<ViewVideo> {
     }
     print(number);
     var request = makePost(
-        'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2NTU2Njg5LCJpYXQiOjE2MzYyOTc0ODksImp0aSI6IjBhMzk4OWI3ODZjOTQ3MDZiMDFiOGY4ZTljMjE4YmZjIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.6G5Hh-pe1Spinhj27T6XsT-tsZDvZ47iD4HXUYVqIQQ',
+        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2NTU2Njg5LCJpYXQiOjE2MzYyOTc0ODksImp0aSI6IjBhMzk4OWI3ODZjOTQ3MDZiMDFiOGY4ZTljMjE4YmZjIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.6G5Hh-pe1Spinhj27T6XsT-tsZDvZ47iD4HXUYVqIQQ',
         'http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/processing/video/mosaic/');
     request.fields.addAll({
       'vdo_url': '$origin',
