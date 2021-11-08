@@ -49,7 +49,7 @@ class _ViewVideoState extends State<ViewVideo> {
   void initState() {
     super.initState();
     activePath = widget.path;
-    _controller = VideoPlayerController.file(File(widget.path))
+    _controller = VideoPlayerController.file(File(activePath))
       ..initialize().then((_) {
         setState(() {});
       });
@@ -290,11 +290,8 @@ class _ViewVideoState extends State<ViewVideo> {
     var request = makePost(
         'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2NTU2Njg5LCJpYXQiOjE2MzYyOTc0ODksImp0aSI6IjBhMzk4OWI3ODZjOTQ3MDZiMDFiOGY4ZTljMjE4YmZjIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.6G5Hh-pe1Spinhj27T6XsT-tsZDvZ47iD4HXUYVqIQQ',
         'http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/data/videos/');
-    request.fields.addAll({
-      'useremail': 'admin@admin.com',
-      'username': 'admin',
-      'desc': 'test upload2'
-    });
+    request.fields.addAll(
+        {'useremail': 'admin@admin.com', 'username': 'admin', 'desc': 'video'});
     request.files.add(await http.MultipartFile.fromPath('video', path));
     print('============================');
     print('path:      ' + path);
@@ -314,8 +311,8 @@ class _ViewVideoState extends State<ViewVideo> {
         'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2NTU2Njg5LCJpYXQiOjE2MzYyOTc0ODksImp0aSI6IjBhMzk4OWI3ODZjOTQ3MDZiMDFiOGY4ZTljMjE4YmZjIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.6G5Hh-pe1Spinhj27T6XsT-tsZDvZ47iD4HXUYVqIQQ',
         'http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/processing/video/');
 
-    request.files.add(await http.MultipartFile.fromPath('video', path));
-    print(path);
+    request.files.add(await http.MultipartFile.fromPath('video', activePath));
+    print(activePath);
     // http.StreamedResponse response = await request.send();
     http.StreamedResponse response = await request.send();
     print('=============');
@@ -368,7 +365,10 @@ class _ViewVideoState extends State<ViewVideo> {
         saveInPublicStorage: true);
     // await _prepareSaveDir();
     activePath = _localPath + '/' + fileName.last;
-    setState(() {});
+    _controller = VideoPlayerController.file(File(activePath))
+      ..initialize().then((_) {
+        setState(() {});
+      });
   }
 
   Widget makeButton(int index) {

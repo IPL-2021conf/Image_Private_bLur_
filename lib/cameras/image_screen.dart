@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:android_path_provider/android_path_provider.dart';
 import 'package:image_downloader/image_downloader.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 const debug = true;
 
@@ -49,19 +50,6 @@ class _ViewImage extends State<ViewImage> {
     activePath = widget.path;
 
     super.initState();
-    // _bindBackgroundIsolate();
-    // bool isSuccess = IsolateNameServer.registerPortWithName(
-    //     _port.sendPort, 'downloader_send_port');
-    // _port.listen((dynamic data) {
-    //   if (debug) {
-    //     print('UI Isolate Callback: $data');
-    //   }
-    //   String? id = data[0];
-    //   DownloadTaskStatus? status = data[1];
-    //   int? progress = data[2];
-    //   setState(() {});
-    // });
-    // FlutterDownloader.registerCallback(downloadCallback);
   }
 
   @override
@@ -116,6 +104,14 @@ class _ViewImage extends State<ViewImage> {
 // ============================================
 
   void getImageFromServer(String path) async {
+    Fluttertoast.showToast(
+        msg: "인물 추출중입니다.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.black,
+        fontSize: 16.0);
     var request = makePost(
         'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2NTU2Njg5LCJpYXQiOjE2MzYyOTc0ODksImp0aSI6IjBhMzk4OWI3ODZjOTQ3MDZiMDFiOGY4ZTljMjE4YmZjIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.6G5Hh-pe1Spinhj27T6XsT-tsZDvZ47iD4HXUYVqIQQ',
         'http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/processing/image/');
@@ -136,6 +132,14 @@ class _ViewImage extends State<ViewImage> {
       isPressed.add(false);
       basicColor.add(Colors.transparent);
     }
+    Fluttertoast.showToast(
+        msg: "인물 추출이 완료되었습니다. 새로고침을 해주세요.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.black,
+        fontSize: 16.0);
 
     // await _prepareSaveDir();
   }
@@ -147,7 +151,7 @@ class _ViewImage extends State<ViewImage> {
     }
     print(number);
     var request = makePost('${mytoken}',
-        'https://ipl-server-ml.herokuapp.com/processing/image/mosaic/');
+        'http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/processing/image/mosaic/');
     request.fields.addAll({
       'img_url': '$origin',
       'human_list': '$number',
@@ -346,13 +350,10 @@ class _ViewImage extends State<ViewImage> {
   }
 
   void uploading(String path) async {
-    var request =
-        makePost('${mytoken}', 'https://ipl-main.herokuapp.com/data/images/');
-    request.fields.addAll({
-      'useremail': 'admin@admin.com',
-      'username': 'admin',
-      'desc': 'test upload2'
-    });
+    var request = makePost('${mytoken}',
+        'http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/data/images/');
+    request.fields.addAll(
+        {'useremail': 'admin@admin.com', 'username': 'admin', 'desc': 'image'});
     request.files.add(await http.MultipartFile.fromPath('image', activePath));
     print('============================');
     print(path);

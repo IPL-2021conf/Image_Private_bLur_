@@ -54,6 +54,9 @@ dependencies:
   device_info: ^2.0.3
   image_downloader: ^0.30.0
   flutter_image_compress: ^1.1.0
+  chewie: ^1.2.2
+  better_player: ^0.0.79
+  
 
   
 dev_dependencies:

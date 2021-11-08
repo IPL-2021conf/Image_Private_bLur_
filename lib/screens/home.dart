@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:core';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_downloader/image_downloader.dart';
 import 'package:image_picker/image_picker.dart';
@@ -48,32 +48,39 @@ class home extends StatefulWidget {
 
 class _home extends State<home> {
   get jsonmap => null;
-  List<Map<String, dynamic>> a = [];
+  List<Map<String, dynamic>> file_list = [];
 
   Future<List<Map<String, dynamic>>?> fetchPost() async {
     var headers = {
       'Authorization':
-          'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2Mzc3ODQ3LCJpYXQiOjE2MzU2OTM3NjUsImp0aSI6IjUzMGE3Y2NlZTVjZDRiOWM5Y2UyMTU0NGE2MGY3YzYxIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.yKAQMHB9nDbVClTJPAzfGZa3Emjf3PMy98mbLjhK_Vw',
+          'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2NTU2Njg5LCJpYXQiOjE2MzYyOTc0ODksImp0aSI6IjBhMzk4OWI3ODZjOTQ3MDZiMDFiOGY4ZTljMjE4YmZjIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.6G5Hh-pe1Spinhj27T6XsT-tsZDvZ47iD4HXUYVqIQQ',
       'Content-Type': 'application/json'
     };
     var request = http.MultipartRequest(
-        'GET', Uri.parse('https://ipl-main.herokuapp.com/data/images/'));
+        'GET',
+        Uri.parse(
+            'http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/data/images/'));
 
     request.headers.addAll(headers);
+
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      print("성공");
+      print("이미지성공");
       var jsonstr = await response.stream.bytesToString();
       print(jsonstr);
 
       var jsonmap = jsonDecode(jsonstr);
 
       for (var data in jsonmap) {
-        a.add(data);
+        file_list.add(data);
       }
-      a = a.reversed.toList();
-      return a;
+      print(file_list);
+      file_list.sort((a, b) => a['date'].compareTo(b['date']));
+
+      file_list.reversed;
+      print(file_list);
+      return file_list;
     } else {
       print("실패");
       print(response.reasonPhrase);
@@ -83,7 +90,6 @@ class _home extends State<home> {
   @override
   void initState() {
     super.initState();
-    fetchPost();
   }
 
   Widget makePost(AsyncSnapshot snapshot, int index, BuildContext context) {
@@ -180,6 +186,7 @@ class _home extends State<home> {
           automaticallyImplyLeading: false,
           backgroundColor: Colors.white,
           centerTitle: true,
+          title: Image.asset('images/logo1.png'),
           toolbarHeight: 70,
           actions: <Widget>[
             IconButton(
@@ -192,27 +199,15 @@ class _home extends State<home> {
                   // Obtain a list of the available cameras on the device.
                   final cameras = await availableCameras();
 
-                  // Get a specific camera from the list of available cameras.
-                  final firstCamera = cameras.first;
-
                   Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) =>
-                              TakePictureScreen(camera: firstCamera)));
+                              TakePictureScreen(camera: cameras)));
                 }),
-            SizedBox(width: 110),
-            Image.asset('images/logo1.png'),
             SizedBox(
-              width: 100,
-            ),
-            IconButton(
-                icon: Icon(
-                  Icons.refresh,
-                  color: Colors.blueGrey,
-                  size: 40,
-                ),
-                onPressed: () {}),
+              width: 10,
+            )
           ]),
 
       body: RefreshIndicator(
@@ -224,7 +219,7 @@ class _home extends State<home> {
                 return ListView.builder(
                     scrollDirection: Axis.vertical,
                     shrinkWrap: true,
-                    itemCount: a.length,
+                    itemCount: file_list.length,
                     itemBuilder: (context, index) {
                       return makePost(snapshot, index, context);
                     });
@@ -256,7 +251,7 @@ class _home extends State<home> {
 
   Future<void> _refresh() async {
     await Future.delayed(Duration(seconds: 2));
-    fetchPost();
+    file_list.clear();
     setState(() {});
   }
 

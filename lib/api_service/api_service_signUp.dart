@@ -4,7 +4,8 @@ import 'package:image_private_blur/user_model.dart';
 
 class APIServiceSignUp {
   Future<SignUpRequestModel> signUp(SignUpRequestModel requesetModel) async {
-    String uri = "https://ipl-main.herokuapp.com/account/signup/";
+    String uri =
+        "http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/account/signup/";
 
     final response =
         await http.post(Uri.parse(uri), body: requesetModel.toJson());

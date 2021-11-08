@@ -3,7 +3,8 @@ import 'package:image_private_blur/screens/login.dart';
 
 class APIServiceAccess {
   Future<String> Token() async {
-    String uri = "https://ipl-main.herokuapp.com/account/login/refresh/";
+    String uri =
+        "http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/account/login/refresh/";
 
     final response = await http.post(
       Uri.parse(uri),

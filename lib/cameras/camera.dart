@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,7 @@ class TakePictureScreen extends StatefulWidget {
     required this.camera,
   }) : super(key: key);
 
-  final CameraDescription camera;
+  final List<CameraDescription> camera;
 
   @override
   TakePictureScreenState createState() => TakePictureScreenState();
@@ -29,13 +30,17 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   final itemKey = GlobalKey();
   int now = 0;
   var buttonColor = Colors.white;
+  bool isCameraFront = true;
+  double transform = 0;
+  Future<void>? cameraValue;
+  List<CameraDescription> cameras = [];
 
   @override
   void initState() {
     super.initState();
     // 현재 촬영중인 카메라를 보여주기 위해 카메라컨트롤러 생성
     _controller = CameraController(
-      widget.camera,
+      widget.camera[0],
       ResolutionPreset.high,
     );
 
@@ -163,6 +168,24 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                 shape: CircleBorder(),
               ),
             ),
+            Positioned(
+                right: 0,
+                top: 0,
+                child: IconButton(
+                    onPressed: () async {
+                      setState(() {
+                        isCameraFront = !isCameraFront;
+                      });
+                      int cameraPos = isCameraFront ? 0 : 1;
+                      _controller = CameraController(
+                          widget.camera[cameraPos], ResolutionPreset.high);
+                      _initializeControllerFuture = _controller.initialize();
+                    },
+                    icon: Icon(
+                      Icons.flip_camera_android_rounded,
+                      color: Colors.white,
+                      size: 40,
+                    )))
           ],
         ),
       ]),

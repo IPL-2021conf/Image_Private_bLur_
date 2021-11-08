@@ -4,7 +4,8 @@ import 'package:image_private_blur/user_model.dart';
 
 class APIServiceSignIn {
   Future<LoginResponseModel> login(LoginRequestModel requesetModel) async {
-    String uri = "https://ipl-main.herokuapp.com/account/login/";
+    String uri =
+        "http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/account/login/";
 
     final response = await http.post(
       Uri.parse(uri),

@@ -5,7 +5,8 @@ import 'package:image_private_blur/user_model.dart';
 
 class APIServiceLogout {
   Future<SignUpRequestModel> LogOut(SignUpRequestModel requesetModel) async {
-    String uri = "https://ipl-main.herokuapp.com/account/logout/";
+    String uri =
+        "http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/account/logout/";
 
     final response = await http.post(
       Uri.parse(uri),
