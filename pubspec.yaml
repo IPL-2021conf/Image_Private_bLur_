@@ -53,6 +53,7 @@ dependencies:
   android_path_provider: ^0.3.0
   device_info: ^2.0.3
   image_downloader: ^0.30.0
+  flutter_image_compress: ^1.1.0
 
   
 dev_dependencies:

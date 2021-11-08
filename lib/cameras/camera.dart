@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_private_blur/cameras/video_screen.dart';
 import 'image_screen.dart';
 import 'package:fab_circular_menu/fab_circular_menu.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class TakePictureScreen extends StatefulWidget {
   const TakePictureScreen({
@@ -104,12 +107,22 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                       // 사진을 촬영하여 image에 저장
                       final image = await _controller.takePicture();
 
+                      Uint8List imageBytes = await image.readAsBytes();
+                      Uint8List result =
+                          await FlutterImageCompress.compressWithList(
+                              imageBytes,
+                              quality: 100,
+                              rotate: 0);
+
+                      File fixedImage = File(image.path);
+                      fixedImage.writeAsBytes(result);
+
                       // 사진을 찍으면 image_screen 페이지 실행
                       // 메모리에 올라간 현재 촬영한 사진의 경로를 보냄
                       await Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => ViewImage(
-                            path: image.path,
+                            path: fixedImage.path,
                           ),
                         ),
                       );

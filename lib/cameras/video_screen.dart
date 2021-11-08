@@ -8,7 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:image_private_blur/screens/login.dart';
 import 'package:http/http.dart' as http;
 import 'package:android_path_provider/android_path_provider.dart';
-import 'package:image_downloader/image_downloader.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 
 class Video {
   var urlImage;
@@ -297,15 +297,15 @@ class _ViewVideoState extends State<ViewVideo> {
 
     print(mosaic);
 
-    try {
-      var imageId = await ImageDownloader.downloadImage('${origin}');
-      if (imageId == null) return;
-      activePath = await ImageDownloader.findPath(imageId);
-    } catch (e) {
-      print(e);
-    }
+    _localPath = (await _findLocalPath())!;
 
-    Directory d = await getApplicationDocumentsDirectory();
+    final taskId = await FlutterDownloader.enqueue(
+        url:
+            'https://bucket-for-ipl.s3.amazonaws.com/images/CAP7238091484346134678.jpg',
+        savedDir: _localPath,
+        showNotification: true,
+        openFileFromNotification: true,
+        saveInPublicStorage: true);
 
     await _prepareSaveDir();
   }

@@ -1,16 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_downloader/image_downloader.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_private_blur/cameras/camera.dart';
 import 'package:image_private_blur/cameras/image_screen.dart';
@@ -184,10 +180,6 @@ class _home extends State<home> {
           centerTitle: true,
           toolbarHeight: 70,
           actions: <Widget>[
-            Image.asset('images/logo1.png'),
-            SizedBox(
-              width: 90,
-            ),
             IconButton(
                 icon: Icon(
                   Icons.camera_alt,
@@ -210,29 +202,45 @@ class _home extends State<home> {
                               TakePictureScreen(camera: firstCamera)));
                 }),
             SizedBox(
+              width: 90,
+            ),
+            Image.asset('images/logo1.png'),
+            SizedBox(
+              width: 79,
+            ),
+            IconButton(
+                icon: Icon(
+                  Icons.refresh,
+                  color: Colors.blueGrey,
+                  size: 40,
+                ),
+                onPressed: () {}),
+            SizedBox(
               width: 10,
             ),
           ]),
 
-      body: FutureBuilder<List<Map<String, dynamic>>?>(
-        future: fetchPost(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return ListView.builder(
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                itemCount: a.length,
-                itemBuilder: (context, index) {
-                  return makePost(snapshot, index, context);
-                });
-          } else if (snapshot.hasError) {
-            return Text('${snapshot.error}');
-          }
+      body: RefreshIndicator(
+          onRefresh: _refresh,
+          child: FutureBuilder<List<Map<String, dynamic>>?>(
+            future: fetchPost(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return ListView.builder(
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    itemCount: a.length,
+                    itemBuilder: (context, index) {
+                      return makePost(snapshot, index, context);
+                    });
+              } else if (snapshot.hasError) {
+                return Text('${snapshot.error}');
+              }
 
-          // 기본적으로 로딩 Spinner를 보여줍니다.
-          return CircularProgressIndicator();
-        },
-      ),
+              // 기본적으로 로딩 Spinner를 보여줍니다.
+              return CircularProgressIndicator();
+            },
+          )),
       //업로드 버튼
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xfffcaa06),
@@ -251,6 +259,12 @@ class _home extends State<home> {
     );
   }
 
+  Future<void> _refresh() async {
+    await Future.delayed(Duration(seconds: 2));
+    fetchPost();
+    setState(() {});
+  }
+
   void showAlertDialog(BuildContext context, dynamic url) async {
     var result = await showDialog(
       context: context,
@@ -260,7 +274,7 @@ class _home extends State<home> {
           title: Text('SAVE'),
           content: Text("저장하시겠습니까?"),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text('저장'),
               onPressed: () async {
                 try {
@@ -275,7 +289,7 @@ class _home extends State<home> {
                 Navigator.pop(context);
               },
             ),
-            FlatButton(
+            TextButton(
               child: Text('뒤로가기'),
               onPressed: () {
                 Navigator.pop(context, "Cancel");
