@@ -5,6 +5,7 @@ import '../user_model.dart';
 import 'home.dart';
 
 String mytoken = '';
+String myName = '';
 
 class login extends StatefulWidget {
   @override
@@ -178,6 +179,7 @@ class _login extends State<login> {
 
                               if (value.access.isNotEmpty) {
                                 mytoken = value.access;
+                                myName = value.username;
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(

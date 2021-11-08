@@ -1,11 +1,13 @@
 class LoginResponseModel {
   final String access;
+  final String username;
 
-  LoginResponseModel({this.access = ''});
+  LoginResponseModel({this.access = '', this.username = ''});
 
   factory LoginResponseModel.fromJson(Map<String, dynamic> json) {
     return LoginResponseModel(
       access: json["access"] != null ? json["access"] : "",
+      username: json["username"] != null ? json["username"] : "",
     );
   }
 }
