@@ -71,6 +71,7 @@ class _home extends State<home> {
       for (var data in jsonmap) {
         a.add(data);
       }
+      a = a.reversed.toList();
       return a;
     } else {
       print("실패");
@@ -187,6 +188,10 @@ class _home extends State<home> {
                   size: 40,
                 ),
                 onPressed: () async {
+                  await FlutterDownloader.initialize(
+                      debug:
+                          true // optional: set false to disable printing logs to console
+                      );
                   WidgetsFlutterBinding.ensureInitialized();
 
                   // Obtain a list of the available cameras on the device.
@@ -201,6 +206,18 @@ class _home extends State<home> {
                           builder: (context) =>
                               TakePictureScreen(camera: firstCamera)));
                 }),
+            SizedBox(width: 110),
+            Image.asset('images/logo1.png'),
+            SizedBox(
+              width: 100,
+            ),
+            IconButton(
+                icon: Icon(
+                  Icons.refresh,
+                  color: Colors.blueGrey,
+                  size: 40,
+                ),
+                onPressed: () {}),
             SizedBox(
               width: 90,
             ),
