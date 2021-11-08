@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_downloader/image_downloader.dart';
 import 'package:image_picker/image_picker.dart';
@@ -188,12 +189,6 @@ class _home extends State<home> {
                   size: 40,
                 ),
                 onPressed: () async {
-                  await FlutterDownloader.initialize(
-                      debug:
-                          true // optional: set false to disable printing logs to console
-                      );
-                  WidgetsFlutterBinding.ensureInitialized();
-
                   // Obtain a list of the available cameras on the device.
                   final cameras = await availableCameras();
 
@@ -218,23 +213,6 @@ class _home extends State<home> {
                   size: 40,
                 ),
                 onPressed: () {}),
-            SizedBox(
-              width: 90,
-            ),
-            Image.asset('images/logo1.png'),
-            SizedBox(
-              width: 79,
-            ),
-            IconButton(
-                icon: Icon(
-                  Icons.refresh,
-                  color: Colors.blueGrey,
-                  size: 40,
-                ),
-                onPressed: () {}),
-            SizedBox(
-              width: 10,
-            ),
           ]),
 
       body: RefreshIndicator(

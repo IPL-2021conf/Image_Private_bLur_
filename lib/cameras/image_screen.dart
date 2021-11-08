@@ -1,14 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:image_private_blur/screens/login.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:android_path_provider/android_path_provider.dart';
 import 'package:image_downloader/image_downloader.dart';
+
+const debug = true;
 
 class Photo {
   var urlImage;
@@ -38,20 +42,78 @@ class _ViewImage extends State<ViewImage> {
   var list;
   var activePath;
 
-  late String _localPath;
-
+  // late String _localPath;
+  // ReceivePort _port = ReceivePort();
   @override
   void initState() {
     activePath = widget.path;
 
     super.initState();
+    // _bindBackgroundIsolate();
+    // bool isSuccess = IsolateNameServer.registerPortWithName(
+    //     _port.sendPort, 'downloader_send_port');
+    // _port.listen((dynamic data) {
+    //   if (debug) {
+    //     print('UI Isolate Callback: $data');
+    //   }
+    //   String? id = data[0];
+    //   DownloadTaskStatus? status = data[1];
+    //   int? progress = data[2];
+    //   setState(() {});
+    // });
+    // FlutterDownloader.registerCallback(downloadCallback);
   }
 
   @override
   void dispose() {
     IsolateNameServer.removePortNameMapping('downloader_send_port');
+    // _unbindBackgroundIsolate();
     super.dispose();
   }
+
+// ============================================
+  // void _bindBackgroundIsolate() {
+  //   bool isSuccess = IsolateNameServer.registerPortWithName(
+  //       _port.sendPort, 'downloader_send_port');
+  //   if (!isSuccess) {
+  //     _unbindBackgroundIsolate();
+  //     _bindBackgroundIsolate();
+  //     return;
+  //   }
+  //   _port.listen((dynamic data) {
+  //     if (debug) {
+  //       print('UI Isolate Callback: $data');
+  //     }
+  //     String? id = data[0];
+  //     DownloadTaskStatus? status = data[1];
+  //     int? progress = data[2];
+  //     setState(() {});
+  //     // if (_tasks != null && _tasks!.isNotEmpty) {
+  //     //   final task = _tasks!.firstWhere((task) => task.taskId == id);
+  //     //   setState(() {
+  //     //     task.status = status;
+  //     //     task.progress = progress;
+  //     //   });
+  //     // }
+
+  //   });
+  // }
+
+  // void _unbindBackgroundIsolate() {
+  //   IsolateNameServer.removePortNameMapping('downloader_send_port');
+  // }
+
+  static void downloadCallback(
+      String id, DownloadTaskStatus status, int progress) {
+    if (debug) {
+      print(
+          'Background Isolate Callback: task ($id) is in status ($status) and process ($progress)');
+    }
+    final SendPort send =
+        IsolateNameServer.lookupPortByName('downloader_send_port')!;
+    send.send([id, status, progress]);
+  }
+// ============================================
 
   void getImageFromServer(String path) async {
     var request = makePost(
@@ -75,7 +137,7 @@ class _ViewImage extends State<ViewImage> {
       basicColor.add(Colors.transparent);
     }
 
-    await _prepareSaveDir();
+    // await _prepareSaveDir();
   }
 
   void sendPerson() async {
@@ -107,7 +169,7 @@ class _ViewImage extends State<ViewImage> {
 
     Directory d = await getApplicationDocumentsDirectory();
 
-    await _prepareSaveDir();
+    // await _prepareSaveDir();
   }
 
   Widget makeButton(int index) {
@@ -305,14 +367,14 @@ class _ViewImage extends State<ViewImage> {
     }
   }
 
-  Future<void> _prepareSaveDir() async {
-    _localPath = (await _findLocalPath())!;
-    final savedDir = Directory(_localPath);
-    bool hasExisted = await savedDir.exists();
-    if (!hasExisted) {
-      savedDir.create();
-    }
-  }
+  // Future<void> _prepareSaveDir() async {
+  //   _localPath = (await _findLocalPath())!;
+  //   final savedDir = Directory(_localPath);
+  //   bool hasExisted = await savedDir.exists();
+  //   if (!hasExisted) {
+  //     savedDir.create();
+  //   }
+  // }
 
   Future<String?> _findLocalPath() async {
     var externalStorageDirPath;

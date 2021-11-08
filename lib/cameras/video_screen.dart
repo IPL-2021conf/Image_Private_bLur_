@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -9,6 +10,8 @@ import 'package:image_private_blur/screens/login.dart';
 import 'package:http/http.dart' as http;
 import 'package:android_path_provider/android_path_provider.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
+
+const debug = true;
 
 class Video {
   var urlImage;
@@ -41,7 +44,7 @@ class _ViewVideoState extends State<ViewVideo> {
   var activePath;
 
   late String _localPath;
-
+  ReceivePort _port = ReceivePort();
   @override
   void initState() {
     super.initState();
@@ -50,6 +53,19 @@ class _ViewVideoState extends State<ViewVideo> {
       ..initialize().then((_) {
         setState(() {});
       });
+
+    bool isSuccess = IsolateNameServer.registerPortWithName(
+        _port.sendPort, 'downloader_send_port');
+    _port.listen((dynamic data) {
+      if (debug) {
+        print('UI Isolate Callback: $data');
+      }
+      String? id = data[0];
+      DownloadTaskStatus? status = data[1];
+      int? progress = data[2];
+      setState(() {});
+    });
+    FlutterDownloader.registerCallback(downloadCallback);
   }
 
   @override
@@ -58,6 +74,50 @@ class _ViewVideoState extends State<ViewVideo> {
     _controller.dispose();
     super.dispose();
   }
+
+// ============================================
+  // void _bindBackgroundIsolate() {
+  //   bool isSuccess = IsolateNameServer.registerPortWithName(
+  //       _port.sendPort, 'downloader_send_port');
+  //   if (!isSuccess) {
+  //     _unbindBackgroundIsolate();
+  //     _bindBackgroundIsolate();
+  //     return;
+  //   }
+  //   _port.listen((dynamic data) {
+  //     if (debug) {
+  //       print('UI Isolate Callback: $data');
+  //     }
+  //     String? id = data[0];
+  //     DownloadTaskStatus? status = data[1];
+  //     int? progress = data[2];
+  //     setState(() {});
+  //     // if (_tasks != null && _tasks!.isNotEmpty) {
+  //     //   final task = _tasks!.firstWhere((task) => task.taskId == id);
+  //     //   setState(() {
+  //     //     task.status = status;
+  //     //     task.progress = progress;
+  //     //   });
+  //     // }
+
+  //   });
+  // }
+
+  // void _unbindBackgroundIsolate() {
+  //   IsolateNameServer.removePortNameMapping('downloader_send_port');
+  // }
+
+  static void downloadCallback(
+      String id, DownloadTaskStatus status, int progress) {
+    if (debug) {
+      print(
+          'Background Isolate Callback: task ($id) is in status ($status) and process ($progress)');
+    }
+    final SendPort send =
+        IsolateNameServer.lookupPortByName('downloader_send_port')!;
+    send.send([id, status, progress]);
+  }
+// ============================================
 
   @override
   Widget build(BuildContext context) {
@@ -168,14 +228,6 @@ class _ViewVideoState extends State<ViewVideo> {
                         heroTag: 'download',
                         onPressed: () async {
                           setState(() {});
-                          // _localPath = (await _findLocalPath())!;
-
-                          // final taskId = await FlutterDownloader.enqueue(
-                          //     url: '${origin}',
-                          //     savedDir: _localPath,
-                          //     showNotification: true,
-                          //     openFileFromNotification: true,
-                          //     saveInPublicStorage: true);
                         },
                         elevation: 0,
                         child: Icon(
@@ -205,6 +257,13 @@ class _ViewVideoState extends State<ViewVideo> {
                     child: ElevatedButton(
                         onPressed: () {
                           sendPerson();
+
+                          // final taskId = await FlutterDownloader.enqueue(
+                          //     url: '${origin}',
+                          //     savedDir: _localPath,
+                          //     showNotification: true,
+                          //     openFileFromNotification: true,
+                          //     saveInPublicStorage: true);
                         },
                         child: Text('send'))),
                 Positioned(
@@ -228,16 +287,17 @@ class _ViewVideoState extends State<ViewVideo> {
   }
 
   void uploading(String path) async {
-    var request =
-        makePost('${mytoken}', 'https://ipl-main.herokuapp.com/data/images/');
+    var request = makePost(
+        'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2NTU2Njg5LCJpYXQiOjE2MzYyOTc0ODksImp0aSI6IjBhMzk4OWI3ODZjOTQ3MDZiMDFiOGY4ZTljMjE4YmZjIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.6G5Hh-pe1Spinhj27T6XsT-tsZDvZ47iD4HXUYVqIQQ',
+        'http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/data/videos/');
     request.fields.addAll({
       'useremail': 'admin@admin.com',
       'username': 'admin',
       'desc': 'test upload2'
     });
-    request.files.add(await http.MultipartFile.fromPath('image', activePath));
+    request.files.add(await http.MultipartFile.fromPath('video', path));
     print('============================');
-    print(path);
+    print('path:      ' + path);
 
     http.StreamedResponse response = await request.send();
     print(response.statusCode);
@@ -275,7 +335,7 @@ class _ViewVideoState extends State<ViewVideo> {
       basicColor.add(Colors.transparent);
     }
 
-    await _prepareSaveDir();
+    // await _prepareSaveDir();
   }
 
   void sendPerson() async {
@@ -296,18 +356,19 @@ class _ViewVideoState extends State<ViewVideo> {
     var mosaic = await response.stream.bytesToString();
 
     print(mosaic);
-
-    _localPath = (await _findLocalPath())!;
+    var fileName = mosaic.split('/');
+    // _localPath = (await _findLocalPath())!;
+    await _prepareSaveDir();
 
     final taskId = await FlutterDownloader.enqueue(
-        url:
-            'https://bucket-for-ipl.s3.amazonaws.com/images/CAP7238091484346134678.jpg',
+        url: mosaic,
         savedDir: _localPath,
         showNotification: true,
         openFileFromNotification: true,
         saveInPublicStorage: true);
-
-    await _prepareSaveDir();
+    // await _prepareSaveDir();
+    activePath = _localPath + '/' + fileName.last;
+    setState(() {});
   }
 
   Widget makeButton(int index) {
@@ -338,6 +399,7 @@ class _ViewVideoState extends State<ViewVideo> {
 
   Future<void> _prepareSaveDir() async {
     _localPath = (await _findLocalPath())!;
+    print(_localPath);
     final savedDir = Directory(_localPath);
     bool hasExisted = await savedDir.exists();
     if (!hasExisted) {

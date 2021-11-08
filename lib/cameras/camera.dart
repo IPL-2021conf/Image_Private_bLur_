@@ -138,6 +138,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                       });
                     } else {
                       XFile videopath = await _controller.stopVideoRecording();
+                      print(videopath.path);
                       setState(() {
                         recording = Icons.circle_outlined;
                         onRec = false;
