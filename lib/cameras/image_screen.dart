@@ -145,6 +145,14 @@ class _ViewImage extends State<ViewImage> {
   }
 
   void sendPerson() async {
+    Fluttertoast.showToast(
+        msg: "선택된 인물 모자이크 처리중.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.black,
+        fontSize: 16.0);
     List<int> number = [];
     for (int i = 0; i < isPressed.length; i++) {
       if (isPressed[i] == true) number.add(i);
@@ -350,10 +358,18 @@ class _ViewImage extends State<ViewImage> {
   }
 
   void uploading(String path) async {
+    Fluttertoast.showToast(
+        msg: "업로드 중입니다.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.black,
+        fontSize: 16.0);
     var request = makePost('${mytoken}',
         'http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/data/images/');
     request.fields.addAll(
-        {'useremail': 'admin@admin.com', 'username': 'admin', 'desc': 'image'});
+        {'useremail': 'admin@admin.com', 'username': myName, 'desc': 'image'});
     request.files.add(await http.MultipartFile.fromPath('image', activePath));
     print('============================');
     print(path);
@@ -361,8 +377,16 @@ class _ViewImage extends State<ViewImage> {
     http.StreamedResponse response = await request.send();
     print(response.statusCode);
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 201) {
       print(await response.stream.bytesToString());
+      Fluttertoast.showToast(
+          msg: "업로드가 완료되었습니다.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.grey,
+          textColor: Colors.black,
+          fontSize: 16.0);
     } else {
       print(response.reasonPhrase);
     }

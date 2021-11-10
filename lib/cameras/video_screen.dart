@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:video_player/video_player.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image_private_blur/screens/login.dart';
@@ -227,7 +228,13 @@ class _ViewVideoState extends State<ViewVideo> {
                       FloatingActionButton(
                         heroTag: 'download',
                         onPressed: () async {
-                          setState(() {});
+                          setState(() {
+                            _controller =
+                                VideoPlayerController.file(File(activePath))
+                                  ..initialize().then((_) {
+                                    setState(() {});
+                                  });
+                          });
                         },
                         elevation: 0,
                         child: Icon(
@@ -287,11 +294,19 @@ class _ViewVideoState extends State<ViewVideo> {
   }
 
   void uploading(String path) async {
+    Fluttertoast.showToast(
+        msg: "업로드 중입니다.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.black,
+        fontSize: 16.0);
     var request = makePost(
         'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2NTU2Njg5LCJpYXQiOjE2MzYyOTc0ODksImp0aSI6IjBhMzk4OWI3ODZjOTQ3MDZiMDFiOGY4ZTljMjE4YmZjIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.6G5Hh-pe1Spinhj27T6XsT-tsZDvZ47iD4HXUYVqIQQ',
         'http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/data/videos/');
     request.fields.addAll(
-        {'useremail': 'admin@admin.com', 'username': 'admin', 'desc': 'video'});
+        {'useremail': 'admin@admin.com', 'username': myName, 'desc': 'video'});
     request.files.add(await http.MultipartFile.fromPath('video', path));
     print('============================');
     print('path:      ' + path);
@@ -299,14 +314,30 @@ class _ViewVideoState extends State<ViewVideo> {
     http.StreamedResponse response = await request.send();
     print(response.statusCode);
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 201) {
       print(await response.stream.bytesToString());
+      Fluttertoast.showToast(
+          msg: "업로드가 완료되었습니다.",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.grey,
+          textColor: Colors.black,
+          fontSize: 16.0);
     } else {
       print(response.reasonPhrase);
     }
   }
 
   void getVideoFromServer(String path) async {
+    Fluttertoast.showToast(
+        msg: "인물 추출중입니다.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.black,
+        fontSize: 16.0);
     var request = makePost(
         'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjM2NTU2Njg5LCJpYXQiOjE2MzYyOTc0ODksImp0aSI6IjBhMzk4OWI3ODZjOTQ3MDZiMDFiOGY4ZTljMjE4YmZjIiwidXNlcl9pZCI6MSwiZW1haWwiOiJhZG1pbkBhZG1pbi5jb20ifQ.6G5Hh-pe1Spinhj27T6XsT-tsZDvZ47iD4HXUYVqIQQ',
         'http://ec2-15-164-234-49.ap-northeast-2.compute.amazonaws.com:8000/processing/video/');
@@ -331,11 +362,27 @@ class _ViewVideoState extends State<ViewVideo> {
       isPressed.add(false);
       basicColor.add(Colors.transparent);
     }
+    Fluttertoast.showToast(
+        msg: "인물 추출이 완료되었습니다.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.black,
+        fontSize: 16.0);
 
     // await _prepareSaveDir();
   }
 
   void sendPerson() async {
+    Fluttertoast.showToast(
+        msg: "선택된 인물을 모자이크 처리중입니다.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.black,
+        fontSize: 16.0);
     List<int> number = [];
     for (int i = 0; i < isPressed.length; i++) {
       if (isPressed[i] == true) number.add(i);
@@ -365,10 +412,16 @@ class _ViewVideoState extends State<ViewVideo> {
         saveInPublicStorage: true);
     // await _prepareSaveDir();
     activePath = _localPath + '/' + fileName.last;
-    _controller = VideoPlayerController.file(File(activePath))
-      ..initialize().then((_) {
-        setState(() {});
-      });
+    print('asasdfadsfadsf:               ' + activePath);
+
+    Fluttertoast.showToast(
+        msg: "새로고침을 해주세요.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.black,
+        fontSize: 16.0);
   }
 
   Widget makeButton(int index) {

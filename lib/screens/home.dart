@@ -11,6 +11,7 @@ import 'package:image_downloader/image_downloader.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_private_blur/cameras/camera.dart';
 import 'package:image_private_blur/cameras/image_screen.dart';
+import 'package:image_private_blur/cameras/video_screen.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 
@@ -76,9 +77,8 @@ class _home extends State<home> {
         file_list.add(data);
       }
       print(file_list);
-      file_list.sort((a, b) => a['date'].compareTo(b['date']));
-
-      file_list.reversed;
+      //file_list.sort((a, b) => a['date'].compareTo(b['date']));
+      //file_list.reversed;
       print(file_list);
       return file_list;
     } else {
@@ -93,6 +93,8 @@ class _home extends State<home> {
   }
 
   Widget makePost(AsyncSnapshot snapshot, int index, BuildContext context) {
+    //file_list.sort((a, b) => a['date'].compareTo(b['date']));
+    //file_list.reversed;
     return Column(children: [
       new Padding(
         padding: new EdgeInsets.symmetric(vertical: .0, horizontal: 8.0),
@@ -153,18 +155,38 @@ class _home extends State<home> {
   }
 
   File? image;
-  Future getImage() async {
-    try {
-      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (image == null) {
-        return;
-      } else {
-        final imagePermanent = await saveImagePermanently(image.path);
+  File? video;
 
-        setState(() => this.image = imagePermanent);
+  Future getImage(int now) async {
+    if (now == 0) {
+      try {
+        final image =
+            await ImagePicker().pickImage(source: ImageSource.gallery);
+        if (image == null) {
+          return;
+        } else {
+          final imagePermanent = await saveImagePermanently(image.path);
+
+          setState(() => this.image = imagePermanent);
+        }
+      } on PlatformException catch (e) {
+        print('Failed to pick image: $e');
       }
-    } on PlatformException catch (e) {
-      print('Failed to pick image: $e');
+    } else {
+      try {
+        final video =
+            await ImagePicker().pickVideo(source: ImageSource.gallery);
+
+        if (video == null) {
+          return;
+        } else {
+          final videoPermanent = await saveImagePermanently(video.path);
+
+          setState(() => this.video = videoPermanent);
+        }
+      } on PlatformException catch (e) {
+        print('Failed to pick image: $e');
+      }
     }
   }
 
@@ -180,6 +202,7 @@ class _home extends State<home> {
 
   @override
   Widget build(BuildContext context) {
+    int now = 0;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -232,20 +255,52 @@ class _home extends State<home> {
             },
           )),
       //업로드 버튼
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Color(0xfffcaa06),
-        onPressed: () async {
-          await getImage();
-          print(image!.path);
-          Navigator.push(
+      //업로드 버튼
+      floatingActionButton:
+          Column(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
+        new FloatingActionButton(
+            child: Icon(Icons.image_outlined),
+            heroTag: 'image',
+            onPressed: () async {
+              print("이미지갤러리");
+              now = 0;
+              await getImage(now);
+              print(image!.path);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ViewImage(
+                    path: image!.path,
+                  ),
+                ),
+              );
+            }),
+        SizedBox(
+          height: 5,
+        ),
+        new FloatingActionButton(
+          child: Icon(Icons.video_library),
+          heroTag: 'video',
+          onPressed: () async {
+            print("비디오갤러리");
+            now = 1;
+            await getImage(now);
+            print(video!.path);
+            Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => ViewImage(
-                        path: image!.path,
-                      )));
-        },
-        child: const Icon(Icons.download_rounded),
-      ),
+                builder: (context) => ViewVideo(
+                  path: video!.path,
+                ),
+              ),
+            );
+          },
+        ),
+        SizedBox(
+          height: 5,
+        ),
+        //업로드 버튼
+      ]),
     );
   }
 
